@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35828.75 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apparal_Management", "Apparal_Management\Apparal_Management.csproj", "{21235955-978A-4E81-A75F-D900C2696A7F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{21235955-978A-4E81-A75F-D900C2696A7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21235955-978A-4E81-A75F-D900C2696A7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21235955-978A-4E81-A75F-D900C2696A7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21235955-978A-4E81-A75F-D900C2696A7F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8DB4882D-1FFC-45C8-AD4D-702D369ED2AC}
+	EndGlobalSection
+EndGlobal
