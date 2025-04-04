@@ -1,12 +1,14 @@
-﻿//using Apparal_Management.Models;
-//using System.Threading.Tasks;
+﻿using Apparal_Management.Models.Dto;
+//using Apparal_Management.Models.LoginDto;
+//using Apparel_Management.DTOs;
+using System.Threading.Tasks;
 
-//namespace Apparal_Management.Services
-//{
-//    public interface IUserAuthService
-//    {
-//        Task<string?> RegisterUser(RegisterModel registerModel);
-//        Task<string?> LoginUser(LoginModel loginModel);
-//        Task LogoutUser();
-//    }
-//}
+namespace Apparel_Management.Services.IServices
+{
+    public interface IUserAuthService
+    {
+        Task<string?> RegisterUser(RegisterDto registerModel);
+        Task<string?> LoginUser(LoginDto loginModel);
+        Task LogoutUser();
+    }
+}

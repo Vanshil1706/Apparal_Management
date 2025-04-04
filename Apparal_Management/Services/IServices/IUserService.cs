@@ -1,13 +1,13 @@
-﻿using Apparal_Management.DTOs;
+﻿using Apparal_Management.Models.Dto;
 
-namespace Apparal_Management.Services
+namespace Apparal_Management.Services.IServices
 {
     public interface IUserService
     {
-        Task<IEnumerable<UserDto>> GetAllUsers();
-        Task<UserDto?> GetUserById(string id);
-        Task<UserDto?> CreateUser(CreateUserDto createUserDto);
-        Task<UserDto?> UpdateUser(string id, UpdateUserDto updateUserDto);
-        Task<bool> DeleteUser(string id);
+        Task<List<UserDto>> GetUsersAsync();
+        Task<UserDto> GetUserByIdAsync(string id);
+        Task<UserDto> CreateUserAsync(CreateUserDto userDto);
+        Task<UserDto> UpdateUserAsync(string id, UpdateUserDto userDto);
+        Task<bool> DeleteUserAsync(string id);
     }
 }

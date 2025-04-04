@@ -1,110 +1,100 @@
-﻿//using Apparal_Management.Data;
-//using Apparal_Management.Models;
-//using Microsoft.AspNetCore.Identity;
-//using Microsoft.Extensions.Configuration;
-//using Microsoft.IdentityModel.Tokens;
-//using System;
-//using System.IdentityModel.Tokens.Jwt;
-//using System.Security.Claims;
-//using System.Text;
-//using System.Threading.Tasks;
+﻿using Apparal_Management.Models.Dto;
+using Apparal_Management.Models;
+using Apparel_Management.Services.IServices;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
 
-//namespace Apparal_Management.Services
-//{
-//    public class UserAuthService : IUserAuthService
-//    {
-//        private readonly UserManager<ApplicationUser> _userManager;
-//        private readonly SignInManager<ApplicationUser> _signInManager;
-//        private readonly string _jwtKey;
-//        private readonly string? _jwtIssuer;
-//        private readonly string? _jwtAudience;
-//        private readonly int _jwtExpiry;
+namespace Apparel_Management.Services
+{
+    public class UserAuthService : IUserAuthService
+    {
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly string _jwtKey;
+        private readonly int _jwtExpiry;
+        private string _jwtAudience;
+        private string _jwtIssuer;
 
-//        public UserAuthService(UserManager<ApplicationUser> userManager,
-//                               SignInManager<ApplicationUser> signInManager,
-//                               IConfiguration configuration)
-//        {
-//            _userManager = userManager;
-//            _signInManager = signInManager;
-//            _jwtKey = configuration["Jwt:Key"];
-//            _jwtIssuer = configuration["Jwt:Issuer"];
-//            _jwtAudience = configuration["Jwt:Audience"];
-//            _jwtExpiry = int.Parse(configuration["Jwt:ExpiryMinutes"]);
-//        }
+        public UserAuthService(UserManager<ApplicationUser> userManager,
+                               SignInManager<ApplicationUser> signInManager,
+                               IConfiguration configuration)
+        {
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _jwtKey = configuration["Jwt:Key"];
+            _jwtExpiry = int.TryParse(configuration["Jwt:ExpiryMinutes"], out var expiry) ? expiry : 60;
+        }
 
-//        public async Task<string?> RegisterUser(RegisterModel registerModel)
-//        {
-//            if (registerModel == null ||
-//                string.IsNullOrEmpty(registerModel.Name) ||
-//                string.IsNullOrEmpty(registerModel.Email) ||
-//                string.IsNullOrEmpty(registerModel.Password))
-//            {
-//                return "Invalid registration details";
-//            }
+        public async Task<string?> RegisterUser(RegisterDto registerModel)
+        {
+            var existingUser = await _userManager.FindByEmailAsync(registerModel.Email);
+            if (existingUser != null) return "Email already exists";
 
-//            var existingUser = await _userManager.FindByEmailAsync(registerModel.Email);
-//            if (existingUser != null)
-//            {
-//                return "Email already exists";
-//            }
+            var user = new ApplicationUser { 
+                UserName = registerModel.Email, 
+                Email = registerModel.Email, 
+                Name = registerModel.Name 
+            };
+            var result = await _userManager.CreateAsync(user, registerModel.Password);
+            return result.Succeeded ? null : result.ToString();//"User registration failed";
+        }
 
-//            var user = new ApplicationUser
-//            {
-//                UserName = registerModel.Email,
-//                Email = registerModel.Email,
-//                Name = registerModel.Name
-//            };
+        public async Task<string?> LoginUser(LoginDto loginModel)
+        {
+            var user = await _userManager.FindByEmailAsync(loginModel.Email);
+            if (user == null) return "Invalid credentials";
 
-//            var result = await _userManager.CreateAsync(user, registerModel.Password);
-//            if (!result.Succeeded)
-//            {
-//                return "User registration failed";
-//            }
+            var result = await _signInManager.CheckPasswordSignInAsync(user, loginModel.Password, false);
+            return result.Succeeded ? GenerateJwtToken(user) : "Invalid credentials";
+        }
 
-//            return null; // No error, registration successful
-//        }
+        public async Task LogoutUser()
+        {
+            await _signInManager.SignOutAsync();
+        }
 
-//        public async Task<string?> LoginUser(LoginModel loginModel)
-//        {
-//            var user = await _userManager.FindByEmailAsync(loginModel.Email);
-//            if (user == null)
-//            {
-//                return "Invalid username or password";
-//            }
+        //private string GenerateJwtToken(ApplicationUser user)
+        //{
+        //    var claims = new[]
+        //    {
+        //        new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+        //        new Claim(JwtRegisteredClaimNames.Email, user.Email),
+        //        new Claim("Name", user.Name),
+        //        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        //    };
 
-//            var result = await _signInManager.CheckPasswordSignInAsync(user, loginModel.Password, false);
-//            if (!result.Succeeded)
-//            {
-//                return "Invalid username or password";
-//            }
 
-//            return GenerateJwtToken(user);
-//        }
+        //    //var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-//        public async Task LogoutUser()
-//        {
-//            await _signInManager.SignOutAsync();
-//        }
+        //    var token = new JwtSecurityToken(claims: claims, expires: DateTime.UtcNow.AddMinutes(_jwtExpiry));
+        //    return new JwtSecurityTokenHandler().WriteToken(token);
+        //}
+        private string GenerateJwtToken(ApplicationUser user)
+        {
+            var claims = new[]
+            {
+        new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+        new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
+        new Claim("Name", user.Name ?? ""),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+    };
 
-//        private string GenerateJwtToken(ApplicationUser user)
-//        {
-//            var claims = new[]
-//            {
-//                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-//                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-//                new Claim("Name", user.Name),
-//                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-//            };
+            var token = new JwtSecurityToken(
+                issuer: _jwtIssuer,
+                audience: _jwtAudience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(_jwtExpiry),
+                signingCredentials: null // 🔹 No signing credentials (NO SIGNATURE)
+            );
 
-//            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
-//            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
 
-//            var token = new JwtSecurityToken(
-//                claims: claims,
-//                expires: DateTime.UtcNow.AddMinutes(_jwtExpiry),
-//                signingCredentials: creds);
-
-//            return new JwtSecurityTokenHandler().WriteToken(token);
-//        }
-//    }
-//}
+    }
+}
